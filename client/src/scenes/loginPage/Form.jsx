@@ -80,20 +80,24 @@ const Form = () => {
   };
 
   const register = async (values, onSubmitProps) => {
-    // this allows us to send form into with image
-    const formData = new FormData();
-    for (let value in values) {
-      if (value === "picture") continue;
-      formData.append(value, values[value]);
-    }
     const image = await uploadImage(values.picture);
-    formData.append("picturePath", image.url);
+    // this allows us to send form into with image
+    const data = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      password: values.password,
+      location: values.location,
+      occupation: values.occupation,
+      picturePath: image.url,
+    };
 
     const savedUserResponse = await fetch(
       `${process.env.REACT_APP_API_URL}/auth/register`,
       {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       }
     );
     const savedUser = await savedUserResponse.json();

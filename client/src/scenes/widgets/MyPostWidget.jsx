@@ -40,21 +40,29 @@ const MyPostWidget = ({ picturePath }) => {
   const medium = palette.neutral.medium;
 
   const handlePost = async () => {
-    const formData = new FormData();
-    formData.append("userId", _id);
-    formData.append("description", post);
-    if (image) {
-      formData.append("picturePath", image.url);
+    try {
+      const imageRes = await uploadImage(image);
+
+      const data = {
+        userId: _id,
+        description: post,
+        picturePath: imageRes.url,
+      };
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/posts`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      const posts = await response.json();
+      dispatch(setPosts({ posts }));
+    } finally {
+      setImage(null);
+      setPost("");
     }
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/posts`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    const posts = await response.json();
-    dispatch(setPosts({ posts }));
-    setImage(null);
-    setPost("");
   };
 
   return (
@@ -83,10 +91,7 @@ const MyPostWidget = ({ picturePath }) => {
           <Dropzone
             acceptedFiles=".jpg,.jpeg,.png"
             multiple={false}
-            onDrop={async (acceptedFiles) => {
-              const image = await uploadImage(acceptedFiles[0]);
-              setImage(image);
-            }}
+            onDrop={(acceptedFiles) => setImage(acceptedFiles[0])}
           >
             {({ getRootProps, getInputProps }) => (
               <FlexBetween>
@@ -102,7 +107,7 @@ const MyPostWidget = ({ picturePath }) => {
                     <p>Add Image Here</p>
                   ) : (
                     <FlexBetween>
-                      <Typography>{image.original_filename}</Typography>
+                      <Typography>{image.name}</Typography>
                       <EditOutlined />
                     </FlexBetween>
                   )}
