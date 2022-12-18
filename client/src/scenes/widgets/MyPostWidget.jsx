@@ -24,8 +24,10 @@ import WidgetWrapper from "components/WidgetWrapper";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "state";
+import { useCloudinary } from "providers/CloudinaryProvider";
 
 const MyPostWidget = ({ picturePath }) => {
+  const { uploadImage } = useCloudinary();
   const dispatch = useDispatch();
   const [isImage, setIsImage] = useState(false);
   const [image, setImage] = useState(null);
@@ -42,10 +44,8 @@ const MyPostWidget = ({ picturePath }) => {
     formData.append("userId", _id);
     formData.append("description", post);
     if (image) {
-      formData.append("picture", image);
-      formData.append("picturePath", image.name);
+      formData.append("picturePath", image.url);
     }
-
     const response = await fetch(`${process.env.REACT_APP_API_URL}/posts`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
@@ -83,7 +83,10 @@ const MyPostWidget = ({ picturePath }) => {
           <Dropzone
             acceptedFiles=".jpg,.jpeg,.png"
             multiple={false}
-            onDrop={(acceptedFiles) => setImage(acceptedFiles[0])}
+            onDrop={async (acceptedFiles) => {
+              const image = await uploadImage(acceptedFiles[0]);
+              setImage(image);
+            }}
           >
             {({ getRootProps, getInputProps }) => (
               <FlexBetween>
@@ -99,7 +102,7 @@ const MyPostWidget = ({ picturePath }) => {
                     <p>Add Image Here</p>
                   ) : (
                     <FlexBetween>
-                      <Typography>{image.name}</Typography>
+                      <Typography>{image.original_filename}</Typography>
                       <EditOutlined />
                     </FlexBetween>
                   )}

@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 import { setLogin } from "state";
 import Dropzone from "react-dropzone";
 import FlexBetween from "components/FlexBetween";
+import { useCloudinary } from "providers/CloudinaryProvider";
 
 const registerSchema = yup.object().shape({
   firstName: yup.string().required("required"),
@@ -47,6 +48,7 @@ const initialValuesLogin = {
 };
 
 const Form = () => {
+  const { uploadImage } = useCloudinary();
   const [pageType, setPageType] = useState("login");
   const { palette } = useTheme();
   const dispatch = useDispatch();
@@ -81,9 +83,11 @@ const Form = () => {
     // this allows us to send form into with image
     const formData = new FormData();
     for (let value in values) {
+      if (value === "picture") continue;
       formData.append(value, values[value]);
     }
-    formData.append("picturePath", values.picture.name);
+    const image = await uploadImage(values.picture);
+    formData.append("picturePath", image.url);
 
     const savedUserResponse = await fetch(
       `${process.env.REACT_APP_API_URL}/auth/register`,
