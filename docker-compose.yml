@@ -8,6 +8,11 @@ services:
     volumes:
       - ./server:/app
       - /app/node_modules
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
   client:
     build: ./client
     container_name: client
@@ -18,3 +23,8 @@ services:
       - /app/node_modules
     stdin_open: true
     tty: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
